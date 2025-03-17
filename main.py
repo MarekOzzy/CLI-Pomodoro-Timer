@@ -9,7 +9,7 @@ def get_args():
                         type=int, 
                         help='Focus time given in minutes')
     parser.add_argument('-b',
-                        '--break',
+                        '--breaks',
                         type=int,
                         help='Breake time given in minutes')
     parser.add_argument('-c',
@@ -18,57 +18,70 @@ def get_args():
                         help='Number of focus cycles')
     args = parser.parse_args()
 
-    if args.f is not None:
-        focus_time = args.f
+    if args.focus is not None:
+        focus_time = args.focus
     else:
         focus_time = 25
 
-    if args.b is not None:
-        break_time = args.b
+    if args.breaks is not None:
+        break_time = args.breaks
     else:
         break_time = 5
 
-    cycles = args.c
-
+    if args.cycles is not None:
+        cycles = args.cycles
+    else:
+        cycles = 0
+    
     return focus_time, break_time, cycles
 
 def actual_time():
     return time.strftime("%H:%M:%S", time.localtime())
 
 class Timer:
-    performed_cycles = None
+    performed_cycles = 0
+    # Jeśli nie podano ilości cykli jako argument to flaga = False, a program będzie wykonywał się w nieskończoność
+    flag = False
 
     def __init__(self, time, type):
         self.time = time
         self.type = type
 
     def waiting(self):
-        pass
+        time.sleep(1)
 
     def ringing(self):
         if self.type == 'focus':
-            Timer.performed_cycles += 1
+            if Timer.flag:
+                Timer.performed_cycles += 1
             print('DRYNNN KONIEC POMODORO, POCZATEK PRZERWY')
-        else: 
+        if self.type == 'break': 
             print("DRYNNN KONIEC PRZERWY, WRACAJ DO PRACY")
         
 
 
 def main():
+    # Pobieramy argumenty
     focus_time, break_time, cycles = get_args()
-    Timer.performed_cycles = cycles
+    # Jeśli podano jako argument ilość cykli, to flaga = True
+    if cycles != 0:
+        Timer.flag = True
 
+    # Tworzymy obiekty Timer
     timer_focus = Timer(focus_time, type = 'focus')
     timer_break = Timer(break_time, type = 'break')
 
+    input('Naciśnij enter aby rozpocząć')
     while True:
-        if cycles:
-            timer_focus.waiting()
-            timer_focus.ringing()
-            if Timer.performed_cycles is not None and Timer.performed_cycles >= cycles:
+        timer_focus.waiting()
+        timer_focus.ringing()
+        # Jeśli flaga jest False, to sprawdzamy czy wykonała się zadana ilość cykli 
+        if Timer.flag == True:
+            if Timer.performed_cycles >= cycles:
                 break
-            timer_break.waiting()
-            timer_break.ringing()
+        timer_break.waiting()
+        timer_break.ringing()
         continue
+    input('Koniec Programu, naciśnij dowolny klawisz aby zamknąć program')
 
 main()
