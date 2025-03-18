@@ -68,7 +68,19 @@ class Interface:
 
     # Naciśnij enter aby rozpocząć, lub podaj parametry jeśli nie podano ich jako flagę
     def start(self, focus_time, break_time):
-        pass
+        if focus_time is None and break_time is None:
+            print("Podaj czas fokusowania w minutach:")
+            focus_time = int(input())
+            print("Podaj czas przerwy w minutach:")
+            break_time = int(input())
+        elif focus_time is not None and break_time is None:
+            print("Podaj czas przerwy w minutach:")
+            break_time = int(input()) 
+        elif focus_time is None and break_time is not None:
+            print("Podaj czas fokusowania w minutach:")
+            focus_time = int(input())
+        else:
+            input("Naciśnij enter aby rozpocząć")
 
     # Ekran czekania
     def wait(self, type):
