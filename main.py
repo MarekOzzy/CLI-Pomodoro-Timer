@@ -1,5 +1,12 @@
 import time
 import argparse
+from rich.console import Console
+from rich.live import Live
+from rich.panel import Panel
+from rich.progress import Progress, BarColumn, TextColumn
+from rich.layout import Layout
+
+console = Console()
 
 def get_args():
     # Funkcja zwraca elementy podane podczas uruchamiania programu
@@ -20,13 +27,9 @@ def get_args():
 
     if args.focus is not None:
         focus_time = args.focus
-    else:
-        focus_time = 25
 
     if args.breaks is not None:
         break_time = args.breaks
-    else:
-        break_time = 5
 
     if args.cycles is not None:
         cycles = args.cycles
@@ -47,7 +50,8 @@ class Timer:
         self.time = time
         self.type = type
 
-    def waiting(self):
+    def waiting(self, type):
+
         time.sleep(1)
 
     def ringing(self):
@@ -58,28 +62,66 @@ class Timer:
         if self.type == 'break': 
             print("DRYNNN KONIEC PRZERWY, WRACAJ DO PRACY")
 
+class Interface:
+    def __init__(self):
+        pass
+
+    # Naciśnij enter aby rozpocząć, lub podaj parametry jeśli nie podano ich jako flagę
+    def start(self, focus_time, break_time):
+        pass
+
+    # Ekran czekania
+    def wait(self, type):
+        pass 
+
+    # Ekran z dzwonkiem plus dźwięk
+    def ring(self):
+        pass
+
+    # Egran końcowy
+    def end(self):
+        pass
+
 def main():
+
+    interface = Interface
     # Pobieramy argumenty
     focus_time, break_time, cycles = get_args()
     # Jeśli podano jako argument ilość cykli, to flaga = True
     if cycles != 0:
         Timer.flag = True
 
+    # Sprawdzamy o jakie parametry będziemy pytać użytkownika jeśli nie podano flag
+    if focus_time is None:
+        interface.start(focus_time, None)
+    elif break_time is None:
+        interface.start(None, break_time)
+    elif focus_time and break_time is None:
+        interface.start(focus_time, break_time)
+    else:
+        interface.start(None, None)  
+
+
+    # Tworzymy obiekt klasy interface który przekażemy do obiektów klasy Timer
+
+
     # Tworzymy obiekty Timer
     timer_focus = Timer(focus_time, type = 'focus')
     timer_break = Timer(break_time, type = 'break')
 
-    input('Naciśnij enter aby rozpocząć')
+    interface.start()
     while True:
         timer_focus.waiting()
         timer_focus.ringing()
-        # Jeśli flaga jest False, to sprawdzamy czy wykonała się zadana ilość cykli 
+        # Jeśli nie podano ilości cykli to flaga == False a petla będzie się wykonywać w nieskończoność
         if Timer.flag == True:
+            # Jeśli flaga jest False, to sprawdzamy czy wykonała się zadana ilość cykli 
             if Timer.performed_cycles >= cycles:
                 break
         timer_break.waiting()
         timer_break.ringing()
         continue
-    input('Koniec Programu, naciśnij dowolny klawisz aby zamknąć program')
+    interface.end()
 
-main()
+if __name__ == '__main__':
+    main()
