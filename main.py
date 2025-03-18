@@ -57,8 +57,6 @@ class Timer:
             print('DRYNNN KONIEC POMODORO, POCZATEK PRZERWY')
         if self.type == 'break': 
             print("DRYNNN KONIEC PRZERWY, WRACAJ DO PRACY")
-        
-
 
 def main():
     # Pobieramy argumenty
