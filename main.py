@@ -1,34 +1,38 @@
 import time
 import argparse
+import sys
 from rich.console import Console
 from rich.live import Live
 from rich.panel import Panel
 from rich.progress import Progress, BarColumn, TextColumn
 from rich.layout import Layout
 
-console = Console()
 
-def get_args():
+
+def get_args(interface):
     # Funkcja zwraca elementy podane podczas uruchamiania programu
     parser = argparse.ArgumentParser()
     parser.add_argument('-f',
                         '--focus',
                         type=str, 
-                        help='Focus time given in minutes')
+                        help='Focus time given in format minutes:seconds')
     parser.add_argument('-b',
                         '--breaks',
                         type=str,
-                        help='Breake time given in minutes')
+                        help='Break time given in format minutes:seconds')
     parser.add_argument('-c',
                         '--cycles',
                         type=int,
                         help='Number of focus cycles')
     args = parser.parse_args()
-
-    focus_time = args.focus if args.focus else None
-    break_time = args.breaks if args.breaks else None
-    cycles = args.cycles if args.cycles else 0
+    try:
+        focus_time = string_to_seconds(args.focus)
+        break_time = string_to_seconds(args.breaks)
+    except Exception as e:
+        interface.end(e)
     
+    cycles = args.cycles if args.cycles else 0
+
     return focus_time, break_time, cycles
 
 # Do usunięcia?
@@ -36,7 +40,21 @@ def actual_time():
     return time.strftime("%H:%M:%S", time.localtime())
 
 def string_to_seconds(str):
-    pass
+    # Function converting either "minutes:seconds" format or plain minutes to seconds
+    if ':' in str:
+        tabela = str.split(':')
+        minuty = int(tabela[0])
+        sekundy = int(tabela[1])
+        if sekundy >= 60 or sekundy < 0:
+            raise ValueError("Incorrect format. Seconds must be between 0 and 59")
+        total = minuty * 60 + sekundy
+    else:
+        try:
+            minuty = int(str)
+            total = minuty * 60
+        except ValueError:
+            raise ValueError("Incorrect format. Use either minutes:seconds or plain minutes")
+    return total
 
 class Timer:
     performed_cycles = 0
@@ -66,10 +84,11 @@ class Interface:
 
     # Naciśnij enter aby rozpocząć, lub podaj parametry jeśli nie podano ich jako flagę
     def start(self, focus_time=None, break_time=None):
+        # Do dodania walidacja formatu
         if focus_time is None:
-            focus_time = int(input("Podaj czas skupienia (w minutach): "))
+            focus_time = int(input("Enter focus time in either minutes:seconds or plain minutes: "))
         if break_time is None:
-            break_time = int(input("Podaj czas przerwy (w minutach): "))
+            break_time = int(input("Enter break time in either minutes:seconds or plain minutes"))
         input("Naciśnij enter aby rozpocząć")
         return focus_time, break_time
 
@@ -85,16 +104,25 @@ class Interface:
     def end(self):
         pass
 
+    # Wznosi błąd. Służy aby poprosić użytkownika o ponowne wprowadzenie danych
+    def error(self, e):
+        pass
+
+    def critical_error(self, e):
+        pass
+
 def main():
+    # Tworzymy obiekt konsoli w którym będziemy wyświetlać interfejs graficzny
+    console = Console()
+
     # Tworzymy obiekt klasy interface który przekażemy do obiektów klasy Timer
     interface = Interface()
 
     # Pobieramy argumenty
-    focus_time, break_time, cycles = get_args()
-
-    # Jeśli podano jako argument ilość cykli, to flaga = True
-    if cycles != 0:
-        Timer.flag = True
+    try:
+        focus_time, break_time, cycles = get_args(interface)
+    except Exception as e:
+        interface.critical_error(e)
 
     # Okno startu. Sprawdzamy o jakie parametry będziemy pytać użytkownika jeśli nie podano flag
     focus_time, break_time = interface.start(focus_time, break_time)
@@ -103,7 +131,10 @@ def main():
     timer_focus = Timer(focus_time, type='focus', interface=interface)
     timer_break = Timer(break_time, type='break', interface=interface)
 
-    
+    # Jeśli podano jako argument ilość cykli, to flaga = True
+    if cycles != 0:
+        Timer.flag = True
+
     while True:
         timer_focus.waiting()
         timer_focus.ringing()
