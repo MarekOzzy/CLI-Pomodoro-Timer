@@ -18,12 +18,9 @@ class Timer:
         time.sleep(1)
 
     def ringing(self):
+        self.interface.ring(self.type)
         if self.type == 'focus':
-            print('DRYNNN KONIEC POMODORO, POCZATEK PRZERWY')
-            if Timer.flag:
-               Timer.performed_cycles += 1
-        if self.type == 'break': 
-            print("DRYNNN KONIEC PRZERWY, WRACAJ DO PRACY")
+            Timer.performed_cycles += 1
 
 
 
