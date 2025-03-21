@@ -26,12 +26,17 @@ def get_args(interface):
                         help='Number of focus cycles')
     args = parser.parse_args()
     try:
-        focus_time = string_to_seconds(args.focus)
-        break_time = string_to_seconds(args.breaks)
+        focus_time = string_to_seconds(args.focus) if args.focus else None
+        break_time = string_to_seconds(args.breaks) if args.breaks else None
     except Exception as e:
-        interface.end(e)
+        interface.critical_error(e)
     
+    ################### Dodać obsłgę błędu valueError
     cycles = args.cycles if args.cycles else 0
+    try:
+        int(cycles)
+    except Exception as e:
+        interface.critical_error(e)
 
     return focus_time, break_time, cycles
 
@@ -86,10 +91,10 @@ class Interface:
     def start(self, focus_time=None, break_time=None):
         # Do dodania walidacja formatu
         if focus_time is None:
-            focus_time = int(input("Enter focus time in either minutes:seconds or plain minutes: "))
+            focus_time = string_to_seconds(input("Enter focus time in either minutes:seconds or plain minutes: "))
         if break_time is None:
-            break_time = int(input("Enter break time in either minutes:seconds or plain minutes"))
-        input("Naciśnij enter aby rozpocząć")
+            break_time = string_to_seconds(input("Enter break time in either minutes:seconds or plain minutes"))
+        input("Press enter to start")
         return focus_time, break_time
 
     # Ekran czekania
@@ -109,7 +114,8 @@ class Interface:
         pass
 
     def critical_error(self, e):
-        pass
+        input(f"Error: {e}\nPress enter to close program")
+        sys.exit()
 
 def main():
     # Tworzymy obiekt konsoli w którym będziemy wyświetlać interfejs graficzny
