@@ -14,8 +14,7 @@ class Timer:
         self.interface = interface
 
     def waiting(self):
-
-        time.sleep(1)
+        self.interface.wait(self.time, self.type)
 
     def ringing(self):
         self.interface.ring(self.type)
@@ -25,7 +24,6 @@ class Timer:
 
 
 def main():
-
     # Tworzymy obiekt klasy interface który przekażemy do obiektów klasy Timer
     interface = Interface()
 

@@ -23,8 +23,8 @@ def get_args(interface):
     except Exception as e:
         interface.critical_error(e)
     
-    ################### Dodać obsłgę błędu valueError
     cycles = args.cycles if args.cycles else 0
+    # Dodać sprawdzenie czy podana wartość jest dodatnia
     try:
         int(cycles)
     except Exception as e:
@@ -32,12 +32,9 @@ def get_args(interface):
 
     return focus_time, break_time, cycles
 
-# Do usunięcia?
-def actual_time():
-    return time.strftime("%H:%M:%S", time.localtime())
 
 def string_to_seconds(str):
-    # Function converting either "minutes:seconds" format or plain minutes to seconds
+    # Dodać walidację tego czy podano wartości dodatnie
     if ':' in str:
         tabela = str.split(':')
         minuty = int(tabela[0])
