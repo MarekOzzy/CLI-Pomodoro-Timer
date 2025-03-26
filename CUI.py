@@ -1,13 +1,13 @@
 import sys
-from time import sleep
-from util import *
+import threading
+import time
 from rich.console import Console
 from rich.progress import Progress
 from rich.layout import Layout
 from rich.align import Align
 from rich.panel import Panel
 from rich.live import Live
-import asyncio
+from util import *
 
 class Interface:
     def __init__(self):
@@ -16,9 +16,11 @@ class Interface:
 
     def create_panel(self, 
                      layout, 
-                     title="[green on red]POMODORO TIMER[/]", 
-                     title_align="left", 
-                     border_style="red",
+                     border_style,
+                     style='none',
+                     subtitle=f"[#299500 on red] {current_time()}[/]",
+                     title="[#299500 on red bold] POMODORO TIMER[/]",
+                     title_align="center",
                      ):
         """Tworzy obiekt panel, który pozwoli na dynamiczne zmienianie wielkości okna"""
         return Panel(
@@ -26,6 +28,9 @@ class Interface:
             title=title,
             title_align=title_align,
             border_style=border_style,
+            style=style,
+            subtitle=subtitle,
+            subtitle_align="center",
             expand=True,
             height=self.console.height,
             width=self.console.width
@@ -43,6 +48,18 @@ class Interface:
             Layout(Align.center("[red]PRESS ENTER TO START[/]", vertical="top"))
         )
 
+        with self.live:
+            self.waiting_for_input = True
+            input_thread = threading.Thread(target=self.wait_for_enter)
+            input_thread.start()
+
+            while self.waiting_for_input:
+                self.live.update(self.create_panel(
+                    layout=layout,
+                    border_style='black on red',
+                    subtitle=f"[black on red] {current_time()}[/]"
+                ))
+                time.sleep(0.2)
 
         # STARA WERSJA KODU BEZ TRHEADINGU
         # with self.live:

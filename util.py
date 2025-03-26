@@ -32,6 +32,8 @@ def get_args(interface):
 
     return focus_time, break_time, cycles
 
+def current_time():
+    return time.strftime("%H:%M:%S")
 
 def string_to_seconds(str):
     # Dodać walidację tego czy podano wartości dodatnie
