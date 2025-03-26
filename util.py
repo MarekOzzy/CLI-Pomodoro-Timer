@@ -18,8 +18,8 @@ def get_args(interface):
                         help='Number of focus cycles')
     args = parser.parse_args()
     try:
-        focus_time = string_to_seconds(args.focus) if args.focus else None
-        break_time = string_to_seconds(args.breaks) if args.breaks else None
+        focus_time = string_to_seconds(args.focus) if args.focus else 1500
+        break_time = string_to_seconds(args.breaks) if args.breaks else 300
     except Exception as e:
         interface.critical_error(e)
     

@@ -1,7 +1,5 @@
-import time
 from CUI import Interface
 from util import *
-
 
 class Timer:
     performed_cycles = 0
@@ -33,8 +31,8 @@ def main():
     except Exception as e:
         interface.critical_error(e)
 
-    # Okno startu. Sprawdzamy o jakie parametry będziemy pytać użytkownika jeśli nie podano flag
-    focus_time, break_time = interface.start(focus_time, break_time)
+    # Okno startu
+    interface.start()
 
     # Tworzymy obiekty Timer
     timer_focus = Timer(focus_time, type='focus', interface=interface)
