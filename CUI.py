@@ -1,8 +1,8 @@
 import sys
 import threading
-import time
+from time import sleep
 from rich.console import Console
-from rich.progress import Progress
+from rich.progress import Progress, BarColumn, TimeRemainingColumn
 from rich.layout import Layout
 from rich.align import Align
 from rich.panel import Panel
@@ -18,8 +18,8 @@ class Interface:
                      layout, 
                      border_style,
                      style='none',
-                     subtitle=f"[#299500 on red] {current_time()}[/]",
-                     title="[#299500 on red bold] POMODORO TIMER[/]",
+                     subtitle=f"[black on red]{current_time()}[/]",
+                     title="[black on red bold]POMODORO TIMER[/]",
                      title_align="center",
                      ):
         """Tworzy obiekt panel, który pozwoli na dynamiczne zmienianie wielkości okna"""
@@ -37,6 +37,7 @@ class Interface:
         )
 
     def wait_for_enter(self):
+        """Funkcja która służy do "Czekania na enter" """
         input()
         self.waiting_for_input = False
 
@@ -50,66 +51,47 @@ class Interface:
 
         with self.live:
             self.waiting_for_input = True
+            # Uruchamiamy wątek który czeka aż użytkownik zmieni flagę na False
             input_thread = threading.Thread(target=self.wait_for_enter)
             input_thread.start()
-
+            
             while self.waiting_for_input:
                 self.live.update(self.create_panel(
                     layout=layout,
                     border_style='black on red',
                     subtitle=f"[black on red] {current_time()}[/]"
                 ))
-                time.sleep(0.2)
-
-        # STARA WERSJA KODU BEZ TRHEADINGU
-        # with self.live:
-        #     self.live.update(self.create_panel(layout=layout,border_style="black on red"))
-        #     input()
+                sleep(0.2)
 
     def wait(self, time, type):
         """Ekran czekania."""
-        progress = Progress()
-        if type == 'focus':
-            task = progress.add_task("time left: ", total=time)
+        progress = Progress(
+            "[progress.description]{task.description}",
+            "[progress.percentage]{task.percentage:>3.0f}%",
+            "{task.completed}/{task.total}",
+            BarColumn(bar_width=None, complete_style='red', finished_style='green'),
+            TimeRemainingColumn(),
+            expand=True
+        )
+        layout = Layout()
+        task = progress.add_task(
+            f"[yellow]{type.upper()}TIME REMAINING", 
+            total=time,
+            completed=0
+        )
         
-            wait_layout = Layout()
-
-            wait_layout.split_column(
-                Layout(Align.center("[red]FOCUS[/red]", vertical="bottom")),
-                Layout(Align.center(progress, vertical="top"))
-            )
-            wait_panel = Panel(
-                wait_layout,
-                title="[green on red]POMODORO TIMER[/]",
-                title_align="right",
-                border_style="red",
-                expand=True,
-                height=self.console.height,
-                width=self.console.width
-            )
-            
-        else:
-            task = progress.add_task("time left: ", total=time)
+        layout.split_column(
+            Layout(Align.center(f"[red]{type.upper()}TIME[/]", vertical="bottom")),
+            Layout(Align.center(progress, vertical="top"))
+        )
         
-            wait_layout = Layout()
-
-            wait_layout.split_column(
-                Layout(Align.center("[red]BREAK[/red]", vertical="bottom")),
-                Layout(Align.center(progress, vertical="top"))
-            )
-            wait_panel = Panel(
-                wait_layout,
-                title="[green on red]POMODORO TIMER[/]",
-                title_align="right",
-                border_style="red",
-                expand=True,
-                height=self.console.height,
-                width=self.console.width
-            )   
-
         with self.live:
             for _ in range(time):
-                self.live.update(wait_panel)
+                self.live.update(self.create_panel(
+                    layout,
+                    border_style='bold red' if type == "focus" else 'bold green',
+                    subtitle=f"[black on red]{current_time()}[/]"
+                ))
                 progress.update(task, advance=1)
                 sleep(1)
 

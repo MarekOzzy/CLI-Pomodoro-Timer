@@ -7,11 +7,11 @@ def get_args(interface):
     parser.add_argument('-f',
                         '--focus',
                         type=str, 
-                        help='Focus time given in format minutes:seconds')
+                        help='Focus time given in format minutes:seconds or plain minutes')
     parser.add_argument('-b',
                         '--breaks',
                         type=str,
-                        help='Break time given in format minutes:seconds')
+                        help='Break time given in format minutes:seconds or plain minutes')
     parser.add_argument('-c',
                         '--cycles',
                         type=int,
