@@ -18,8 +18,8 @@ class Interface:
                      layout, 
                      border_style,
                      style='none',
-                     subtitle=f"[black on red]{current_time()}[/]",
-                     title="[black on red bold]POMODORO TIMER[/]",
+                     subtitle=f"[red on black]{current_time()}[/]",
+                     title="[green on black] POMODORO TIMER [/]",
                      title_align="center",
                      ):
         """Tworzy obiekt panel, który pozwoli na dynamiczne zmienianie wielkości okna"""
@@ -59,40 +59,56 @@ class Interface:
                 self.live.update(self.create_panel(
                     layout=layout,
                     border_style='black on red',
-                    subtitle=f"[black on red] {current_time()}[/]"
+                    subtitle=f"[red on black] {current_time()} [/]"
                 ))
                 sleep(0.2)
 
     def wait(self, time, type):
         """Ekran czekania."""
+        bar_width = int(self.console.width * 0.4)
         progress = Progress(
-            "[progress.description]{task.description}",
-            "[progress.percentage]{task.percentage:>3.0f}%",
-            "{task.completed}/{task.total}",
-            BarColumn(bar_width=None, complete_style='red', finished_style='green'),
-            TimeRemainingColumn(),
-            expand=True
-        )
-        layout = Layout()
-        task = progress.add_task(
-            f"[yellow]{type.upper()}TIME REMAINING", 
-            total=time,
-            completed=0
+            "[bold red]{task.percentage:>3.0f}% ",
+            BarColumn(
+                bar_width=bar_width,
+                style="red",
+                complete_style="green bold",
+                finished_style="green bold",
+                pulse_style="green"
+            ),
+            "[bold green]{task.fields[time_left]}[/]",  # Add custom field for time display
+            expand=False,
+            transient=True
         )
         
+        task = progress.add_task(
+            f"[bold yellow]{type.upper()} TIME REMAINING[/]", 
+            total=time,
+            completed=0,
+            time_left="00:00"  # Initialize custom field
+        )
+        
+        layout = Layout()
         layout.split_column(
             Layout(Align.center(f"[red]{type.upper()}TIME[/]", vertical="bottom")),
             Layout(Align.center(progress, vertical="top"))
         )
         
         with self.live:
-            for _ in range(time):
+            for i in range(time):
+                remaining = time - i
+                minutes = remaining // 60
+                seconds = remaining % 60
+                time_str = f"{minutes:02d}:{seconds:02d}"
+                
+                # Aktualizacja szerokości paska przy każdej iteracji
+                progress.columns[1].bar_width = int(self.console.width * 0.4)
+                progress.update(task, advance=1, time_left=time_str)
                 self.live.update(self.create_panel(
                     layout,
+                    title='[green]POMODORO TIMER[/]' if type == "focus" else '[red]POMODORO TIMER[/]',
                     border_style='bold red' if type == "focus" else 'bold green',
-                    subtitle=f"[black on red]{current_time()}[/]"
+                    subtitle=f"[red]{current_time()}[/]" if type == "focus" else f"[green]{current_time()}[/]" 
                 ))
-                progress.update(task, advance=1)
                 sleep(1)
 
     def ring(self, type):
